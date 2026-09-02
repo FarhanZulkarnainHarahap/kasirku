@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+coverage
+.env.local
+package-lock.json
+public/*.svg
+public/favicon.ico
+AGENTS.md
+CLAUDE.md

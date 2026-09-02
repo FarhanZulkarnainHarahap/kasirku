@@ -1,0 +1,31 @@
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/.next/
+**/out/
+**/coverage/
+**/*.tsbuildinfo
+api/prisma/generated/
+
+# Environment and platform state
+**/.env
+**/.env.*
+!**/.env.example
+**/.vercel/
+
+# Local agent instructions
+**/AGENTS.md
+**/agent.md
+**/CLAUDE.md
+**/claude.md
+.agents/
+.codex/
+
+# Excluded PWA assets
+web/public/manifest.webmanifest
+web/public/sw.js
+
+# Nested repository metadata and OS files
+web/.git/
+.DS_Store
+*.log
