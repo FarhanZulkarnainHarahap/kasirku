@@ -1,7 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import * as helmet from "helmet";
 import { pinoHttp } from "pino-http";
 import { allowedOrigins, env } from "./config/env.js";
 import { logger } from "./config/logger.js";
@@ -14,12 +13,11 @@ import { apiRoutes } from "./routes/index.js";
 import { authRoutes } from "./routes/auth.routes.js";
 
 export const app = express();
+
+app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(requestContext);
 app.use(pinoHttp({ logger }));
-app.use(
-  helmet.default({ crossOriginResourcePolicy: { policy: "cross-origin" } }),
-);
 app.use(
   cors({
     origin(origin, callback) {
