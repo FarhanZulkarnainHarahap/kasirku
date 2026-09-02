@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
@@ -14,6 +15,8 @@ import {
 } from "@/features/management/management-views";
 import { useAuthStore } from "@/stores/auth.store";
 import type { User } from "@/types/api";
+import { indexedDbPersister } from "@/lib/query-persister";
+
 export function HomeClient() {
   const [view, setView] = useState<View>("dashboard");
   const auth = useAuthStore();
@@ -27,11 +30,14 @@ export function HomeClient() {
   const user = auth.user || session.data || null;
   const logout = useMutation({
     mutationFn: () => api<null>("/auth/logout", { method: "POST" }),
-    onSettled: () => {
+    onSettled: async () => {
       auth.setUser(null);
       client.clear();
+
+      await indexedDbPersister.removeClient();
     },
   });
+
   if (!user)
     return (
       <LoginForm
@@ -41,6 +47,7 @@ export function HomeClient() {
         }}
       />
     );
+
   const views = {
     dashboard: <DashboardView goToPos={() => setView("pos")} />,
     pos: <PosView />,
@@ -49,6 +56,7 @@ export function HomeClient() {
     customers: <CustomersView />,
     sales: <SalesView />,
   };
+
   return (
     <AppShell
       user={user}
