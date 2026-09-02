@@ -7,6 +7,18 @@ const nextConfig: NextConfig = {
     ],
   },
   poweredByHeader: false,
+  async rewrites() {
+    const apiTarget = process.env.API_PROXY_TARGET?.replace(/\/$/, "");
+
+    if (!apiTarget) return [];
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiTarget}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
