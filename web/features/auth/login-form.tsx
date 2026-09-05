@@ -16,7 +16,7 @@ import type { User } from "@/types/api";
 
 export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
   const [email, setEmail] = useState("owner@my-cashier.test");
-  const [password, setPassword] = useState("Cashier123!");
+  const [password, setPassword] = useState("Owner123!");
   const [show, setShow] = useState(false);
   const mutation = useMutation({
     mutationFn: () =>
