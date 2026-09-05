@@ -21,6 +21,40 @@ const productInput = z.object({
   active: z.boolean().default(true),
 });
 
+const productImageKeywords: Record<string, string> = {
+  "Kopi Susu Gula Aren": "iced-coffee,brown-sugar",
+  Americano: "americano-coffee",
+  "Matcha Latte": "matcha-latte",
+  "Air Mineral 600ml": "mineral-water-bottle",
+  "Croissant Butter": "butter-croissant",
+  "Roti Cokelat": "chocolate-bread",
+  "Nasi Goreng Spesial": "fried-rice",
+  "Mie Goreng": "fried-noodles",
+  "Keripik Kentang": "potato-chips",
+  "Biskuit Cokelat": "chocolate-biscuits",
+  "Kacang Panggang": "roasted-peanuts",
+  "Cokelat Bar": "chocolate-bar",
+  "Sabun Mandi": "bath-soap",
+  "Sampo 170ml": "shampoo-bottle",
+  "Tisu Wajah": "facial-tissue",
+  "Deterjen 800g": "laundry-detergent",
+  "Kemeja Oxford": "oxford-shirt",
+  "Kaos Basic": "basic-t-shirt",
+  "Kabel USB-C": "usb-c-cable",
+  "Charger 20W": "phone-charger",
+};
+
+const productImageUrl = (name: string) => {
+  const keywords =
+    productImageKeywords[name] ||
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+  return `https://res.cloudinary.com/demo/image/fetch/f_auto,q_auto,w_640,h_480,c_fill/https://loremflickr.com/640/480/${encodeURIComponent(keywords)}`;
+};
+
 export const listProducts = asyncHandler(async (req, res) => {
   const query = z
     .object({
@@ -65,7 +99,18 @@ export const listProducts = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "Produk ditemukan",
-    data: items,
+    data: items.map((item) => ({
+      ...item,
+      images: item.images.length
+        ? item.images
+        : [
+            {
+              secureUrl: productImageUrl(item.name),
+              altText: item.name,
+              isPrimary: true,
+            },
+          ],
+    })),
     meta: {
       page: query.page,
       limit: query.limit,

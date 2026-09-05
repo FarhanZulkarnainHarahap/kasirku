@@ -32,6 +32,34 @@ const products = [
   ["Charger 20W", "ELK-002", "8991006000023", 55000, 99000, "Elektronik"],
 ] as const;
 
+const productImageKeywords: Record<string, string> = {
+  "Kopi Susu Gula Aren": "iced-coffee,brown-sugar",
+  Americano: "americano-coffee",
+  "Matcha Latte": "matcha-latte",
+  "Air Mineral 600ml": "mineral-water-bottle",
+  "Croissant Butter": "butter-croissant",
+  "Roti Cokelat": "chocolate-bread",
+  "Nasi Goreng Spesial": "fried-rice",
+  "Mie Goreng": "fried-noodles",
+  "Keripik Kentang": "potato-chips",
+  "Biskuit Cokelat": "chocolate-biscuits",
+  "Kacang Panggang": "roasted-peanuts",
+  "Cokelat Bar": "chocolate-bar",
+  "Sabun Mandi": "bath-soap",
+  "Sampo 170ml": "shampoo-bottle",
+  "Tisu Wajah": "facial-tissue",
+  "Deterjen 800g": "laundry-detergent",
+  "Kemeja Oxford": "oxford-shirt",
+  "Kaos Basic": "basic-t-shirt",
+  "Kabel USB-C": "usb-c-cable",
+  "Charger 20W": "phone-charger",
+};
+
+const productImageUrl = (name: string) =>
+  `https://res.cloudinary.com/demo/image/fetch/f_auto,q_auto,w_640,h_480,c_fill/https://loremflickr.com/640/480/${encodeURIComponent(
+    productImageKeywords[name] || name.toLowerCase().replaceAll(" ", "-"),
+  )}`;
+
 async function main() {
   const tenant = await prisma.tenant.upsert({
     where: { slug: "my-cashier-mart-demo" },
@@ -128,6 +156,29 @@ async function main() {
         categoryId: categories.get(category),
         unitId: unit.id,
         minimumStock: 5,
+      },
+    });
+    await prisma.productImage.upsert({
+      where: { publicId: `seed-${sku.toLowerCase()}` },
+      update: {
+        productId: product.id,
+        secureUrl: productImageUrl(name),
+        altText: name,
+        isPrimary: true,
+        position: 0,
+      },
+      create: {
+        tenantId: tenant.id,
+        productId: product.id,
+        publicId: `seed-${sku.toLowerCase()}`,
+        secureUrl: productImageUrl(name),
+        width: 640,
+        height: 480,
+        format: "jpg",
+        bytes: 0,
+        version: 1,
+        altText: name,
+        isPrimary: true,
       },
     });
     const quantity = sku.endsWith("004") ? 4 : 40;
