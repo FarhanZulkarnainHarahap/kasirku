@@ -12,7 +12,7 @@ type TokenPayload = {
 };
 
 export const requireAuth: RequestHandler = (req, _res, next) => {
-  const token = req.cookies?.nexxus_session as string | undefined;
+  const token = req.cookies?.my_cashier_session as string | undefined;
   if (!token)
     return next(
       new AppError(401, "Silakan masuk terlebih dahulu", "UNAUTHORIZED"),

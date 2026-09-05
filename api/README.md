@@ -1,6 +1,6 @@
-# NEXXUS POS API
+# MY-CASHIER API
 
-Express 5 + TypeScript + Prisma PostgreSQL API untuk NEXXUS POS: multi-tenant, role/permission, cookie JWT, CSRF, CORS whitelist, rate limiting, produk, Cloudinary, inventori, pelanggan, shift, checkout transaksional-idempoten, dashboard, PDF invoice, dan email Resend.
+Express 5 + TypeScript + Prisma PostgreSQL API untuk MY-CASHIER: multi-tenant, role/permission, cookie JWT, CSRF, CORS whitelist, rate limiting, produk, Cloudinary, inventori, pelanggan, shift, checkout transaksional-idempoten, dashboard, PDF invoice, dan email Resend.
 
 ## Instalasi
 
@@ -13,7 +13,28 @@ npm run db:seed
 npm run dev
 ```
 
-API: `http://localhost:4000/api/v1`. Health: `GET /api/v1/health`.
+API lokal: `http://localhost:4000/api/v1`.
+Root check: `GET /`.
+Health check: `GET /api/v1/health`.
+
+## Environment
+
+Production minimal:
+
+```env
+NODE_ENV=production
+PORT=4000
+WEB_APP_URL=https://my-kasirku.vercel.app
+CORS_ALLOWED_ORIGINS=https://my-kasirku.vercel.app
+DATABASE_URL=...
+DIRECT_URL=...
+JWT_SECRET=...
+COOKIE_SECRET=...
+CSRF_SECRET=...
+APP_NAME=MY-CASHIER
+```
+
+Gunakan secret acak minimal 32 karakter. Jangan commit file `.env`.
 
 ## Prisma Postgres / Prisma Console
 
@@ -29,10 +50,10 @@ Migration awal tersedia di `prisma/migrations/20260902010000_init`.
 
 | Role    | Email                  | Password    |
 | ------- | ---------------------- | ----------- |
-| Owner   | owner@nexxuspos.test   | Owner123!   |
-| Admin   | admin@nexxuspos.test   | Admin123!   |
-| Manager | manager@nexxuspos.test | Manager123! |
-| Cashier | cashier@nexxuspos.test | Cashier123! |
+| Owner   | owner@my-cashier.test   | Owner123!   |
+| Admin   | admin@my-cashier.test   | Admin123!   |
+| Manager | manager@my-cashier.test | Manager123! |
+| Cashier | cashier@my-cashier.test | Cashier123! |
 
 Ganti seluruh password sebelum sistem dapat diakses pihak lain.
 
@@ -54,3 +75,5 @@ npm run build
 npm run db:deploy
 npm start
 ```
+
+Pastikan domain web production masuk `CORS_ALLOWED_ORIGINS`, preflight OPTIONS berhasil, dan `GET /api/v1/health` mengembalikan `success: true`.

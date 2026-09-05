@@ -13,7 +13,7 @@ export const csrfProtection: RequestHandler = (req, _res, next) => {
     req.path === "/api/v1/auth/login"
   )
     return next();
-  const cookie = req.cookies?.nexxus_csrf as string | undefined;
+  const cookie = req.cookies?.my_cashier_csrf as string | undefined;
   const header = req.header("x-csrf-token");
   if (
     !cookie ||

@@ -110,7 +110,7 @@ export function DashboardView({ goToPos }: { goToPos: () => void }) {
         <div>
           <span className="eyebrow dark">RABU, 2 SEPTEMBER 2026</span>
           <h1>
-            Selamat bekerja, <em>tim Nexxus.</em>
+            Selamat bekerja, <em>tim MY-CASHIER.</em>
           </h1>
           <p>Berikut ringkasan performa bisnis Anda hari ini.</p>
         </div>

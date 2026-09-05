@@ -12,7 +12,7 @@ export const apiRoutes = Router();
 apiRoutes.get("/health", (_req, res) =>
   res.json({
     success: true,
-    message: "NEXXUS POS API sehat",
+    message: "MY-CASHIER API sehat",
     data: { status: "ok", timestamp: new Date().toISOString() },
     meta: {},
   }),

@@ -14,7 +14,7 @@ io.on("connection", (socket) => {
 });
 
 server.listen(env.PORT, () =>
-  logger.info({ port: env.PORT }, "NEXXUS POS API running"),
+  logger.info({ port: env.PORT }, "MY-CASHIER API running"),
 );
 
 async function shutdown(signal: string) {

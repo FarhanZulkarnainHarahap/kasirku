@@ -66,7 +66,7 @@ export function AppShell({
               <Store size={21} />
             </span>
             <span>
-              NEXXUS <b>POS</b>
+              MY-CASHIER
             </span>
           </div>
           <button
@@ -80,7 +80,7 @@ export function AppShell({
           <span className="workspace-logo">NT</span>
           <span>
             <small>Ruang kerja</small>
-            <strong>Nexxus Mart</strong>
+            <strong>MY-CASHIER Mart</strong>
           </span>
           <ChevronDown size={16} />
         </div>
@@ -137,7 +137,7 @@ export function AppShell({
             <Menu />
           </button>
           <div>
-            <span className="breadcrumb">NEXXUS POS / {current.label}</span>
+            <span className="breadcrumb">MY-CASHIER / {current.label}</span>
             <h2>{current.label}</h2>
           </div>
           <div className="top-actions">

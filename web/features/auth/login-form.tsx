@@ -15,7 +15,7 @@ import { api, ApiError } from "@/lib/api-client";
 import type { User } from "@/types/api";
 
 export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
-  const [email, setEmail] = useState("cashier@nexxuspos.test");
+  const [email, setEmail] = useState("owner@my-cashier.test");
   const [password, setPassword] = useState("Cashier123!");
   const [show, setShow] = useState(false);
   const mutation = useMutation({
@@ -38,7 +38,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
             <Store size={24} />
           </span>
           <span>
-            NEXXUS <b>POS</b>
+            MY-CASHIER
           </span>
         </div>
         <div className="story-copy">
@@ -51,8 +51,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
             <em>Bisnis lebih terkendali.</em>
           </h1>
           <p>
-            Kelola kasir, stok, pelanggan, dan performa setiap cabang dari satu
-            sistem yang aman.
+            Kelola bisnis Anda dengan MY-CASHIER dari satu sistem yang aman.
           </p>
         </div>
         <div className="trust-row">
@@ -67,7 +66,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
             <span className="brand-mark">
               <Store size={20} />
             </span>
-            NEXXUS POS
+            MY-CASHIER
           </div>
           <span className="overline">SELAMAT DATANG</span>
           <h2>Masuk ke ruang kerja</h2>
@@ -128,7 +127,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
                 </>
               ) : (
                 <>
-                  Masuk ke NEXXUS POS <ArrowRight size={18} />
+                  Masuk ke MY-CASHIER <ArrowRight size={18} />
                 </>
               )}
             </button>

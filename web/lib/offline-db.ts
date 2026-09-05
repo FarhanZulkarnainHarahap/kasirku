@@ -14,13 +14,13 @@ export type QueryCacheRecord = {
   updatedAt: number;
 };
 
-class NexxusOfflineDatabase extends Dexie {
+class MyCashierOfflineDatabase extends Dexie {
   sales!: EntityTable<PendingSale, "id">;
 
   queryCache!: EntityTable<QueryCacheRecord, "id">;
 
   constructor() {
-    super("nexxus-pos-offline");
+    super("my-cashier-offline");
 
     this.version(1).stores({ sales: "id,status,createdAt" });
 
@@ -32,7 +32,7 @@ class NexxusOfflineDatabase extends Dexie {
 }
 
 export const offlineDb =
-  typeof window === "undefined" ? null : new NexxusOfflineDatabase();
+  typeof window === "undefined" ? null : new MyCashierOfflineDatabase();
 
 export async function queueOfflineSale(id: string, payload: unknown) {
   await offlineDb?.sales.put({

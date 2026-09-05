@@ -81,6 +81,6 @@ export const useCartStore = create<CartState>()(
       setDiscount: (transactionDiscount) =>
         set({ transactionDiscount: Math.max(0, transactionDiscount) }),
     }),
-    { name: "nexxus-pos-cart" },
+    { name: "my-cashier-cart" },
   ),
 );

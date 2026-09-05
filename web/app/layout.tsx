@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: "NEXXUS POS — Kendali Bisnis Anda",
+  title: "MY-CASHIER - Kendali Bisnis Anda",
   description:
     "Point of Sale profesional untuk bisnis modern dan multi-cabang.",
 };

@@ -9,14 +9,14 @@ import { asyncHandler } from "../utils/async-handler.js";
 const cookieOptions = {
   httpOnly: true,
   secure: env.NODE_ENV === "production",
-  sameSite: "lax" as const,
+  sameSite: env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
   maxAge: 8 * 60 * 60 * 1000,
   path: "/",
 };
 
 export const csrf: RequestHandler = (_req, res) => {
   const token = createCsrfToken();
-  res.cookie("nexxus_csrf", token, { ...cookieOptions, httpOnly: false });
+  res.cookie("my_cashier_csrf", token, { ...cookieOptions, httpOnly: false });
   res.json({
     success: true,
     message: "Token CSRF dibuat",
@@ -30,7 +30,7 @@ export const login = asyncHandler(async (req, res) => {
     .object({ email: z.email(), password: z.string().min(8) })
     .parse(req.body);
   const result = await authenticate(input.email, input.password);
-  res.cookie("nexxus_session", result.token, cookieOptions);
+  res.cookie("my_cashier_session", result.token, cookieOptions);
   res.json({
     success: true,
     message: "Berhasil masuk",
@@ -40,7 +40,7 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const logout: RequestHandler = (_req, res) => {
-  res.clearCookie("nexxus_session", cookieOptions);
+  res.clearCookie("my_cashier_session", cookieOptions);
   res.json({ success: true, message: "Berhasil keluar", data: null, meta: {} });
 };
 

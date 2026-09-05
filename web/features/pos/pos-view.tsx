@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api-client";
+import { api, ApiError, getApiUrl } from "@/lib/api-client";
 import { formatRupiah } from "@/lib/currency";
 import { useCartStore } from "@/stores/cart.store";
 import { queueOfflineSale } from "@/lib/offline-db";
@@ -572,7 +572,7 @@ function ReceiptModal({ sale, close }: { sale: Sale; close: () => void }) {
             className="button secondary"
             onClick={() =>
               window.open(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1"}/sales/${sale.id}/invoice.pdf`,
+                `${getApiUrl()}/sales/${sale.id}/invoice.pdf`,
                 "_blank",
               )
             }

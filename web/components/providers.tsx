@@ -33,7 +33,7 @@ export function Providers({ children }: { children: ReactNode }) {
       persistOptions={{
         persister: indexedDbPersister,
         maxAge: 30 * 60 * 1_000,
-        buster: "nexxus-pos-query-cache-v1",
+        buster: "my-cashier-query-cache-v1",
         dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
       }}
     >

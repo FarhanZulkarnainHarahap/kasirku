@@ -16,7 +16,7 @@ export async function createInvoicePdf(sale: InvoiceSale) {
   const page = pdf.addPage([595, 842]);
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  page.drawText("NEXXUS POS", {
+  page.drawText("MY-CASHIER", {
     x: 48,
     y: 790,
     size: 22,

@@ -39,7 +39,7 @@ export const uploadProductImages = asyncHandler(async (req, res) => {
       const result = await new Promise<UploadApiResponse>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
-            folder: `nexxus-pos/tenants/${req.auth!.tenantId}/products/${product.id}`,
+            folder: `my-cashier/tenants/${req.auth!.tenantId}/products/${product.id}`,
             public_id: randomUUID(),
             resource_type: "image",
             allowed_formats: ["jpg", "jpeg", "png", "webp"],

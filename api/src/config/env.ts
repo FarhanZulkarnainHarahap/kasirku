@@ -1,20 +1,25 @@
 import { z } from "zod";
 
+const defaultAllowedOrigins = [
+  "http://localhost:3000",
+  "https://my-kasirku.vercel.app",
+];
+
 const schema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
-  WEB_APP_URL: z.string().url().default("http://localhost:3000"),
-  CORS_ALLOWED_ORIGINS: z.string().default("http://localhost:3000"),
+  WEB_APP_URL: z.string().url().default("https://my-kasirku.vercel.app"),
+  CORS_ALLOWED_ORIGINS: z.string().default(defaultAllowedOrigins.join(",")),
   DATABASE_URL: z
     .string()
     .min(1)
-    .default("postgresql://postgres:postgres@localhost:5432/nexxus_pos"),
+    .default("postgresql://postgres:postgres@localhost:5432/my_cashier"),
   DIRECT_URL: z
     .string()
     .min(1)
-    .default("postgresql://postgres:postgres@localhost:5432/nexxus_pos"),
+    .default("postgresql://postgres:postgres@localhost:5432/my_cashier"),
   JWT_SECRET: z
     .string()
     .min(32)
@@ -34,9 +39,9 @@ const schema = z.object({
   CLOUDINARY_LOGO_FOLDER: z.string().default("kasirku/logos"),
   CLOUDINARY_PLACEHOLDER_URL: z.string().default(""),
   RESEND_API_KEY: z.string().default(""),
-  RESEND_FROM_EMAIL: z.string().default("NEXXUS POS <invoice@example.com>"),
+  RESEND_FROM_EMAIL: z.string().default("MY-CASHIER <invoice@example.com>"),
   RESEND_REPLY_TO_EMAIL: z.string().default(""),
-  APP_NAME: z.string().default("NEXXUS POS"),
+  APP_NAME: z.string().default("MY-CASHIER"),
   LOG_LEVEL: z.string().default("info"),
   MAX_UPLOAD_SIZE_MB: z.coerce.number().positive().max(10).default(5),
 });
@@ -51,6 +56,14 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
-export const allowedOrigins = env.CORS_ALLOWED_ORIGINS.split(",").map((value) =>
-  value.trim(),
-);
+export const allowedOrigins = [
+  ...new Set(
+    [
+      env.WEB_APP_URL,
+      ...defaultAllowedOrigins,
+      ...env.CORS_ALLOWED_ORIGINS.split(","),
+    ]
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ),
+];

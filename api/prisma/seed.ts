@@ -34,18 +34,18 @@ const products = [
 
 async function main() {
   const tenant = await prisma.tenant.upsert({
-    where: { slug: "nexxus-mart-demo" },
+    where: { slug: "my-cashier-mart-demo" },
     update: {},
-    create: { name: "Nexxus Mart Demo", slug: "nexxus-mart-demo" },
+    create: { name: "MY-CASHIER Mart Demo", slug: "my-cashier-mart-demo" },
   });
   let store = await prisma.store.findFirst({
-    where: { tenantId: tenant.id, name: "Nexxus Mart" },
+    where: { tenantId: tenant.id, name: "MY-CASHIER Mart" },
   });
   store ??= await prisma.store.create({
     data: {
       tenantId: tenant.id,
-      name: "Nexxus Mart",
-      email: "halo@nexxuspos.test",
+      name: "MY-CASHIER Mart",
+      email: "halo@my-cashier.test",
       phone: "061-555-0199",
     },
   });
@@ -62,10 +62,10 @@ async function main() {
     },
   });
   const roles: [Role, string, string, string][] = [
-    ["OWNER", "Owner Nexxus", "owner@nexxuspos.test", "Owner123!"],
-    ["ADMIN", "Admin Toko", "admin@nexxuspos.test", "Admin123!"],
-    ["MANAGER", "Manager Toko", "manager@nexxuspos.test", "Manager123!"],
-    ["CASHIER", "Sari Kasir", "cashier@nexxuspos.test", "Cashier123!"],
+    ["OWNER", "Owner MY-CASHIER", "owner@my-cashier.test", "Owner123!"],
+    ["ADMIN", "Admin Toko", "admin@my-cashier.test", "Admin123!"],
+    ["MANAGER", "Manager Toko", "manager@my-cashier.test", "Manager123!"],
+    ["CASHIER", "Sari Kasir", "cashier@my-cashier.test", "Cashier123!"],
   ];
   for (const [role, name, email, password] of roles) {
     const user = await prisma.user.upsert({
@@ -145,10 +145,10 @@ async function main() {
     });
   }
   await prisma.supplier.upsert({
-    where: { id: "demo-supplier-nexxus" },
+    where: { id: "demo-supplier-my-cashier" },
     update: {},
     create: {
-      id: "demo-supplier-nexxus",
+      id: "demo-supplier-my-cashier",
       tenantId: tenant.id,
       name: "PT Sumber Makmur",
       company: "PT Sumber Makmur",
@@ -169,7 +169,7 @@ async function main() {
     },
   });
   console.log(
-    "Seed NEXXUS POS selesai. Gunakan akun demo yang tercantum di README.",
+    "Seed MY-CASHIER selesai. Gunakan akun demo yang tercantum di README.",
   );
 }
 main().finally(async () => {

@@ -1,4 +1,4 @@
-# NEXXUS POS Web
+# MY-CASHIER Web
 
 Antarmuka Next.js 16 App Router untuk dashboard, katalog, inventori, pelanggan, kasir, shift, checkout, riwayat transaksi, dan invoice. Semua data bisnis berasal dari Express API; web tidak mengakses Prisma atau menyimpan secret backend.
 
@@ -15,6 +15,13 @@ Buka `http://localhost:3000`; API harus berjalan di `http://localhost:4000`.
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
 NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+```
+
+Production:
+
+```env
+NEXT_PUBLIC_API_URL=https://my-kasirku-2303node.vercel.app/api/v1
+NEXT_PUBLIC_SOCKET_URL=https://my-kasirku-2303node.vercel.app
 ```
 
 Scanner USB bekerja sebagai keyboard; fokus pencarian dengan `F2`, lalu scan barcode. Keranjang dipertahankan lokal dan checkout selalu memakai idempotency key. Manifest PWA tersedia; service worker/Serwist perlu HTTPS serta konfigurasi deployment sebelum antrean transaksi offline diaktifkan. Untuk printer thermal gunakan dialog print browser ukuran 58/80 mm; CSS menyembunyikan navigasi saat print.

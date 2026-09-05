@@ -28,6 +28,9 @@ export function HomeClient() {
     enabled: !auth.user,
   });
   const user = auth.user || session.data || null;
+  const canViewDashboard =
+    user?.permissions.includes("*") || user?.permissions.includes("reports.view");
+  const activeView = canViewDashboard ? view : view === "dashboard" ? "pos" : view;
   const logout = useMutation({
     mutationFn: () => api<null>("/auth/logout", { method: "POST" }),
     onSettled: async () => {
@@ -44,6 +47,11 @@ export function HomeClient() {
         onLogin={(value) => {
           auth.setUser(value);
           client.setQueryData(["session"], value);
+          if (
+            !value.permissions.includes("*") &&
+            !value.permissions.includes("reports.view")
+          )
+            setView("pos");
         }}
       />
     );
@@ -60,11 +68,11 @@ export function HomeClient() {
   return (
     <AppShell
       user={user}
-      view={view}
+      view={activeView}
       setView={setView}
       logout={() => logout.mutate()}
     >
-      {views[view]}
+      {views[activeView]}
     </AppShell>
   );
 }

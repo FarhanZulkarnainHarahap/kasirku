@@ -1,5 +1,5 @@
 {
-  "name": "nexxus-pos-api",
+  "name": "my-cashier-api",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "postinstall": "prisma generate",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write . && prisma format",
