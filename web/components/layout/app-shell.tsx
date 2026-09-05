@@ -4,7 +4,6 @@ import {
   BarChart3,
   Bell,
   Boxes,
-  ChevronDown,
   CircleUserRound,
   LayoutDashboard,
   LogOut,
@@ -19,9 +18,19 @@ import {
   X,
 } from "lucide-react";
 import type { User } from "@/types/api";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
+import type { Branch } from "@/features/management/reports-settings";
 
 export type View =
-  "dashboard" | "pos" | "products" | "inventory" | "customers" | "sales";
+  | "dashboard"
+  | "pos"
+  | "products"
+  | "inventory"
+  | "customers"
+  | "sales"
+  | "reports"
+  | "settings";
 const navigation: { id: View; label: string; icon: typeof LayoutDashboard }[] =
   [
     { id: "dashboard", label: "Ringkasan", icon: LayoutDashboard },
@@ -30,6 +39,8 @@ const navigation: { id: View; label: string; icon: typeof LayoutDashboard }[] =
     { id: "inventory", label: "Stok & Inventori", icon: Boxes },
     { id: "customers", label: "Pelanggan", icon: Users },
     { id: "sales", label: "Transaksi", icon: ReceiptText },
+    { id: "reports", label: "Laporan", icon: BarChart3 },
+    { id: "settings", label: "Pengaturan", icon: Settings },
   ];
 export function AppShell({
   user,
@@ -46,6 +57,12 @@ export function AppShell({
 }) {
   const [mobile, setMobile] = useState(false);
   const [online, setOnline] = useState(true);
+  const [search, setSearch] = useState("");
+  const branches = useQuery({
+    queryKey: ["branches"],
+    queryFn: () => api<Branch[]>("/branches").then((r) => r.data),
+  });
+  const branch = branches.data?.find((x) => x.id === user.branchId);
   const current = navigation.find((item) => item.id === view)!;
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
@@ -65,9 +82,7 @@ export function AppShell({
             <span className="brand-mark">
               <Store size={21} />
             </span>
-            <span>
-              MY-CASHIER
-            </span>
+            <span>MY-CASHIER</span>
           </div>
           <button
             className="icon-button mobile-only"
@@ -82,33 +97,30 @@ export function AppShell({
             <small>Ruang kerja</small>
             <strong>MY-CASHIER Mart</strong>
           </span>
-          <ChevronDown size={16} />
         </div>
         <nav>
           <span className="nav-label">MENU UTAMA</span>
-          {navigation.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              className={view === id ? "active" : ""}
-              onClick={() => {
-                setView(id);
-                setMobile(false);
-              }}
-            >
-              <Icon size={19} />
-              {label}
-              {id === "pos" && <span className="key-hint">F2</span>}
-            </button>
-          ))}
-          <span className="nav-label second">ANALISIS</span>
-          <button>
-            <BarChart3 size={19} />
-            Laporan
-          </button>
-          <button>
-            <Settings size={19} />
-            Pengaturan
-          </button>
+          {navigation
+            .filter(
+              (item) =>
+                !["dashboard", "reports"].includes(item.id) ||
+                user.role === "OWNER" ||
+                user.permissions.includes("reports.view"),
+            )
+            .map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                className={view === id ? "active" : ""}
+                onClick={() => {
+                  setView(id);
+                  setMobile(false);
+                }}
+              >
+                <Icon size={19} />
+                {label}
+                {id === "pos" && <span className="key-hint">F2</span>}
+              </button>
+            ))}
         </nav>
         <div className="sidebar-user">
           <CircleUserRound size={34} />
@@ -144,10 +156,41 @@ export function AppShell({
             {!online && <span className="offline-pill">Offline</span>}
             <div className="global-search">
               <Search size={17} />
-              <input placeholder="Cari apa saja..." />
-              <kbd>⌘ K</kbd>
+              <input
+                aria-label="Cari menu"
+                placeholder="Cari menu..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <div className="menu-results">
+                  {navigation
+                    .filter(
+                      (x) =>
+                        x.label.toLowerCase().includes(search.toLowerCase()) &&
+                        (!["dashboard", "reports"].includes(x.id) ||
+                          user.role === "OWNER" ||
+                          user.permissions.includes("reports.view")),
+                    )
+                    .map((x) => (
+                      <button
+                        key={x.id}
+                        onClick={() => {
+                          setView(x.id);
+                          setSearch("");
+                        }}
+                      >
+                        {x.label}
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
-            <button className="icon-button bell">
+            <button
+              className="icon-button bell"
+              title="Lihat stok menipis"
+              onClick={() => setView("inventory")}
+            >
               <Bell size={19} />
               <i />
             </button>
@@ -155,9 +198,8 @@ export function AppShell({
               <span>NT</span>
               <div>
                 <small>Cabang aktif</small>
-                <strong>Medan Utama</strong>
+                <strong>{branch?.name || "Semua cabang"}</strong>
               </div>
-              <ChevronDown size={15} />
             </div>
           </div>
         </header>

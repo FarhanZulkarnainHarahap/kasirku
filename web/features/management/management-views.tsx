@@ -1,24 +1,19 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Boxes,
-  Download,
-  Filter,
-  Package,
-  Plus,
-  ReceiptText,
-  Search,
-  Users,
-} from "lucide-react";
-import { api, ApiError } from "@/lib/api-client";
+import { useState, type FormEvent } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, Plus, Pencil, Search } from "lucide-react";
+import { toast } from "sonner";
+import { api, getApiUrl } from "@/lib/api-client";
 import { formatRupiah } from "@/lib/currency";
-import type { Customer, Product, Sale } from "@/types/api";
+import type { Category, Customer, Product, Sale } from "@/types/api";
 import {
   EmptyView,
   ErrorView,
   LoadingView,
 } from "@/components/shared/status-view";
-type InventoryItem = {
+import { allProducts, exportCsv, Field, Modal } from "./controls";
+
+type Inventory = {
   id: string;
   quantity: number;
   reserved: number;
@@ -26,322 +21,515 @@ type InventoryItem = {
     id: string;
     name: string;
     sku: string;
-    barcode: string | null;
     minimumStock: number;
     sellingPrice: string;
   };
 };
-function Header({
-  eyebrow,
-  title,
-  description,
-  icon: Icon,
-  action,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  icon: typeof Package;
-  action: string;
-}) {
+type Kind = "products" | "customers" | "inventory" | "sales";
+const titles = {
+  products: "Daftar produk",
+  customers: "Pelanggan",
+  inventory: "Stok produk",
+  sales: "Riwayat transaksi",
+};
+const actions = {
+  products: "Tambah produk",
+  customers: "Tambah pelanggan",
+  inventory: "Penyesuaian stok",
+  sales: "Transaksi baru",
+};
+export function ProductsView() {
+  return <Management kind="products" />;
+}
+export function CustomersView() {
+  return <Management kind="customers" />;
+}
+export function InventoryView() {
+  return <Management kind="inventory" />;
+}
+export function SalesView({ goToPos }: { goToPos: () => void }) {
+  return <Management kind="sales" goToPos={goToPos} />;
+}
+
+function Management({ kind, goToPos }: { kind: Kind; goToPos?: () => void }) {
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
+  const [editing, setEditing] = useState<Product | "new" | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
+  const client = useQueryClient();
+  const products = useQuery({
+    queryKey: ["products-table"],
+    queryFn: () => allProducts<Product>(),
+    enabled: kind === "products" || kind === "inventory",
+  });
+  const customers = useQuery({
+    queryKey: ["customers-table", search],
+    queryFn: () =>
+      api<Customer[]>("/customers?search=" + encodeURIComponent(search)).then(
+        (r) => r.data,
+      ),
+    enabled: kind === "customers",
+  });
+  const inventory = useQuery({
+    queryKey: ["inventory"],
+    queryFn: () => api<Inventory[]>("/inventory").then((r) => r.data),
+    enabled: kind === "inventory",
+  });
+  const sales = useQuery({
+    queryKey: ["sales-table"],
+    queryFn: () => api<Sale[]>("/sales").then((r) => r.data),
+    enabled: kind === "sales",
+  });
+  const categories = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => api<Category[]>("/products/categories").then((r) => r.data),
+    enabled: kind === "products",
+  });
+  const query = { products, customers, inventory, sales }[kind];
+  const save = useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      api(
+        kind === "inventory"
+          ? "/inventory/adjustments"
+          : "/" +
+              kind +
+              (typeof editing === "object" && editing ? "/" + editing.id : ""),
+        {
+          method: typeof editing === "object" && editing ? "PATCH" : "POST",
+          body: JSON.stringify(data),
+        },
+      ),
+    onSuccess: async () => {
+      await client.invalidateQueries();
+      setEditing(null);
+      toast.success("Data berhasil disimpan");
+    },
+  });
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const data: Record<string, unknown> = Object.fromEntries(form);
+    if (kind === "products") {
+      for (const key of [
+        "costPrice",
+        "sellingPrice",
+        "taxRate",
+        "discount",
+        "minimumStock",
+      ])
+        data[key] = Number(data[key]);
+      data.categoryId = data.categoryId || null;
+      data.barcode = data.barcode || null;
+      data.active = form.get("active") === "on";
+    }
+    if (kind === "customers")
+      for (const key of ["email", "phone", "address", "notes"])
+        data[key] = data[key] || null;
+    if (kind === "inventory") data.quantity = Number(data.quantity);
+    save.mutate(data);
+  }
+  const needle = search.toLowerCase();
+  const p = (products.data || []).filter(
+    (x) =>
+      [x.name, x.sku, x.barcode].some((v) =>
+        v?.toLowerCase().includes(needle),
+      ) &&
+      (!filter || (filter === "active" ? x.active : !x.active)),
+  );
+  const c = (customers.data || []).filter(
+    (x) => !filter || (filter === "email" ? !!x.email : !x.email),
+  );
+  const i = (inventory.data || []).filter(
+    (x) =>
+      (x.product.name + x.product.sku).toLowerCase().includes(needle) &&
+      (!filter ||
+        (filter === "low"
+          ? x.quantity > 0 && x.quantity <= x.product.minimumStock
+          : x.quantity <= 0)),
+  );
+  const s = (sales.data || []).filter(
+    (x) =>
+      (x.invoiceNumber + (x.customer?.name || ""))
+        .toLowerCase()
+        .includes(needle) &&
+      (!filter || x.payments?.some((p) => p.method === filter)),
+  );
+  const headers = {
+    products: [
+      "Produk",
+      "SKU",
+      "Barcode",
+      "Kategori",
+      "Harga jual",
+      "Stok",
+      "Status",
+    ],
+    customers: ["Nama", "Email", "Telepon"],
+    inventory: ["Produk", "SKU", "Stok tersedia", "Stok minimum"],
+    sales: ["Invoice", "Waktu", "Pelanggan", "Total"],
+  }[kind];
+  const rows =
+    kind === "products"
+      ? p.map((x) => [
+          x.name,
+          x.sku,
+          x.barcode,
+          x.category?.name,
+          formatRupiah(x.sellingPrice),
+          x.inventories.reduce((n, v) => n + v.quantity, 0),
+          x.active ? "Aktif" : "Arsip",
+        ])
+      : kind === "customers"
+        ? c.map((x) => [x.name, x.email, x.phone])
+        : kind === "inventory"
+          ? i.map((x) => [
+              x.product.name,
+              x.product.sku,
+              x.quantity - x.reserved,
+              x.product.minimumStock,
+            ])
+          : s.map((x) => [
+              x.invoiceNumber,
+              new Date(x.createdAt).toLocaleString("id-ID"),
+              x.customer?.name || "Pelanggan umum",
+              formatRupiah(x.total),
+            ]);
+  const options =
+    kind === "products"
+      ? [
+          ["active", "Aktif"],
+          ["inactive", "Arsip"],
+        ]
+      : kind === "customers"
+        ? [
+            ["email", "Dengan email"],
+            ["no-email", "Tanpa email"],
+          ]
+        : kind === "inventory"
+          ? [
+              ["low", "Menipis"],
+              ["empty", "Habis"],
+            ]
+          : [
+              ["CASH", "Tunai"],
+              ["QRIS_MANUAL", "QRIS"],
+              ["DEBIT_CARD", "Kartu debit"],
+            ];
+  const product = typeof editing === "object" ? editing : null;
   return (
-    <>
+    <div>
       <section className="module-header">
-        <div>
-          <span className="eyebrow dark">{eyebrow}</span>
-          <h1>{title}</h1>
-          <p>{description}</p>
-        </div>
-        <button className="button primary">
+        <h1>{titles[kind]}</h1>
+        <button
+          className="button primary"
+          onClick={() => {
+            save.reset();
+            if (kind === "sales") goToPos?.();
+            else setEditing("new");
+          }}
+        >
           <Plus size={17} />
-          {action}
+          {actions[kind]}
         </button>
       </section>
       <section className="table-toolbar">
         <div className="table-search">
           <Search size={18} />
-          <input placeholder={`Cari ${title.toLowerCase()}...`} />
+          <input
+            aria-label="Cari data"
+            placeholder="Cari..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        <button className="button secondary">
-          <Filter size={17} />
-          Filter
-        </button>
-        <button className="button secondary">
+        <select
+          aria-label="Filter data"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="">Semua</option>
+          {options.map(([v, l]) => (
+            <option key={v} value={v}>
+              {l}
+            </option>
+          ))}
+        </select>
+        <button
+          className="button secondary"
+          disabled={!rows.length || query.isFetching}
+          onClick={() => exportCsv(kind, [headers, ...rows])}
+        >
           <Download size={17} />
-          Ekspor
+          Ekspor CSV
         </button>
-        <span className="module-icon">
-          <Icon size={19} />
-        </span>
       </section>
-    </>
-  );
-}
-export function ProductsView() {
-  const query = useQuery({
-    queryKey: ["products-table"],
-    queryFn: () => api<Product[]>("/products?limit=100").then((r) => r.data),
-  });
-  return (
-    <div>
-      <Header
-        eyebrow="KATALOG"
-        title="Daftar produk"
-        description="Kelola harga, identitas, dan status produk."
-        icon={Package}
-        action="Tambah produk"
-      />
-      <DataState query={query}>
-        {(items: Product[]) => (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Produk</th>
-                  <th>SKU / Barcode</th>
-                  <th>Kategori</th>
-                  <th>Harga jual</th>
-                  <th>Stok</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
+      {query.isLoading ? (
+        <LoadingView />
+      ) : query.error ? (
+        <ErrorView
+          message={query.error.message}
+          retry={() => void query.refetch()}
+        />
+      ) : !rows.length ? (
+        <EmptyView
+          title="Tidak ada data"
+          description="Belum ada data yang sesuai."
+        />
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {headers.map((h) => (
+                  <th key={h}>{h}</th>
+                ))}
+                {(kind === "products" || kind === "sales") && <th>Aksi</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <tr key={index}>
+                  {row.map((v, col) => (
+                    <td key={col}>{v ?? "-"}</td>
+                  ))}
+                  {kind === "products" && (
                     <td>
-                      <strong>{item.name}</strong>
-                    </td>
-                    <td>
-                      <span>{item.sku}</span>
-                      <small>{item.barcode || "—"}</small>
-                    </td>
-                    <td>{item.category?.name || "—"}</td>
-                    <td>
-                      <strong>{formatRupiah(item.sellingPrice)}</strong>
-                    </td>
-                    <td>{item.inventories[0]?.quantity ?? 0}</td>
-                    <td>
-                      <span
-                        className={`status-badge ${item.active ? "green" : "gray"}`}
+                      <button
+                        className="icon-button"
+                        title="Edit produk"
+                        onClick={() => {
+                          save.reset();
+                          setEditing(p[index]);
+                        }}
                       >
-                        {item.active ? "Aktif" : "Arsip"}
-                      </span>
+                        <Pencil size={17} />
+                      </button>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </DataState>
-    </div>
-  );
-}
-export function InventoryView() {
-  const query = useQuery({
-    queryKey: ["inventory"],
-    queryFn: () => api<InventoryItem[]>("/inventory").then((r) => r.data),
-  });
-  return (
-    <div>
-      <Header
-        eyebrow="INVENTORI"
-        title="Stok produk"
-        description="Pantau persediaan dan batas minimum per cabang."
-        icon={Boxes}
-        action="Penyesuaian stok"
-      />
-      <DataState query={query}>
-        {(items: InventoryItem[]) => (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Produk</th>
-                  <th>SKU</th>
-                  <th>Stok tersedia</th>
-                  <th>Stok minimum</th>
-                  <th>Nilai jual</th>
-                  <th>Kondisi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => {
-                  const low = item.quantity <= item.product.minimumStock;
-                  return (
-                    <tr key={item.id}>
-                      <td>
-                        <strong>{item.product.name}</strong>
-                      </td>
-                      <td>{item.product.sku}</td>
-                      <td>
-                        <strong>{item.quantity - item.reserved}</strong>
-                      </td>
-                      <td>{item.product.minimumStock}</td>
-                      <td>
-                        {formatRupiah(
-                          Number(item.product.sellingPrice) * item.quantity,
-                        )}
-                      </td>
-                      <td>
-                        <span
-                          className={`status-badge ${low ? "amber" : "green"}`}
-                        >
-                          {item.quantity <= 0
-                            ? "Habis"
-                            : low
-                              ? "Menipis"
-                              : "Aman"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </DataState>
-    </div>
-  );
-}
-export function CustomersView() {
-  const query = useQuery({
-    queryKey: ["customers-table"],
-    queryFn: () => api<Customer[]>("/customers").then((r) => r.data),
-  });
-  return (
-    <div>
-      <Header
-        eyebrow="CRM"
-        title="Pelanggan"
-        description="Kenali dan layani pelanggan setia Anda."
-        icon={Users}
-        action="Tambah pelanggan"
-      />
-      <DataState query={query}>
-        {(items: Customer[]) => (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nama pelanggan</th>
-                  <th>Email</th>
-                  <th>Telepon</th>
-                  <th>Status kontak</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
+                  )}
+                  {kind === "sales" && (
                     <td>
-                      <strong>{item.name}</strong>
-                    </td>
-                    <td>{item.email || "—"}</td>
-                    <td>{item.phone || "—"}</td>
-                    <td>
-                      <span
-                        className={`status-badge ${item.email ? "green" : "gray"}`}
+                      <button
+                        className="button secondary"
+                        onClick={() => setDetail(s[index].id)}
                       >
-                        {item.email ? "Siap invoice" : "Email kosong"}
-                      </span>
+                        Detail invoice
+                      </button>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </DataState>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {kind === "sales" && (
+        <p>
+          Menampilkan hingga 100 transaksi terbaru. Rekap seluruh periode
+          tersedia di Laporan.
+        </p>
+      )}
+      {editing && (
+        <Modal
+          title={product ? "Edit produk" : actions[kind]}
+          close={() => {
+            if (!save.isPending) setEditing(null);
+          }}
+        >
+          <form className="management-form" onSubmit={submit}>
+            <fieldset disabled={save.isPending}>
+              {kind === "products" && (
+                <>
+                  <Field
+                    label="Nama produk"
+                    name="name"
+                    value={product?.name}
+                    required
+                    minLength={2}
+                    maxLength={150}
+                  />
+                  <Field
+                    label="SKU"
+                    name="sku"
+                    value={product?.sku}
+                    required
+                    minLength={2}
+                    maxLength={50}
+                  />
+                  <Field
+                    label="Barcode"
+                    name="barcode"
+                    value={product?.barcode}
+                    maxLength={50}
+                  />
+                  <label>
+                    Kategori
+                    <select
+                      name="categoryId"
+                      defaultValue={product?.category?.id || ""}
+                    >
+                      <option value="">Tanpa kategori</option>
+                      {categories.data?.map((x) => (
+                        <option key={x.id} value={x.id}>
+                          {x.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <Field
+                    label="Harga modal"
+                    name="costPrice"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={product?.costPrice || 0}
+                    required
+                  />
+                  <Field
+                    label="Harga jual"
+                    name="sellingPrice"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={product?.sellingPrice || 0}
+                    required
+                  />
+                  <Field
+                    label="Pajak (%)"
+                    name="taxRate"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    value={product?.taxRate || 0}
+                    required
+                  />
+                  <Field
+                    label="Diskon (Rp)"
+                    name="discount"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={product?.discount || 0}
+                    required
+                  />
+                  <Field
+                    label="Stok minimum"
+                    name="minimumStock"
+                    type="number"
+                    min={0}
+                    value={product?.minimumStock ?? 5}
+                    required
+                  />
+                  <label className="checkbox-field">
+                    <input
+                      type="checkbox"
+                      name="active"
+                      defaultChecked={product?.active ?? true}
+                    />
+                    Produk aktif
+                  </label>
+                </>
+              )}
+              {kind === "customers" && (
+                <>
+                  <Field
+                    label="Nama pelanggan"
+                    name="name"
+                    required
+                    minLength={2}
+                  />
+                  <Field label="Email" name="email" type="email" />
+                  <Field label="Telepon" name="phone" maxLength={30} />
+                  <Field label="Alamat" name="address" maxLength={500} />
+                  <Field label="Catatan" name="notes" maxLength={500} />
+                </>
+              )}
+              {kind === "inventory" && (
+                <>
+                  <label>
+                    Produk
+                    <select name="productId" required defaultValue="">
+                      <option value="" disabled>
+                        Pilih produk
+                      </option>
+                      {products.data?.map((x) => (
+                        <option key={x.id} value={x.id}>
+                          {x.name} ({x.sku})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <Field
+                    label="Perubahan stok (+ / -)"
+                    name="quantity"
+                    type="number"
+                    required
+                  />
+                  <Field
+                    label="Alasan penyesuaian"
+                    name="reason"
+                    required
+                    minLength={3}
+                    maxLength={300}
+                  />
+                </>
+              )}
+            </fieldset>
+            {save.error && (
+              <p role="alert" className="form-error">
+                {save.error.message}
+              </p>
+            )}
+            <button
+              className="button primary"
+              disabled={
+                save.isPending ||
+                (kind === "inventory" && !products.data?.length)
+              }
+            >
+              {save.isPending ? "Menyimpan..." : "Simpan"}
+            </button>
+          </form>
+        </Modal>
+      )}
+      {detail && <SaleDetail id={detail} close={() => setDetail(null)} />}
     </div>
   );
 }
-export function SalesView() {
+function SaleDetail({ id, close }: { id: string; close: () => void }) {
   const query = useQuery({
-    queryKey: ["sales-table"],
-    queryFn: () => api<Sale[]>("/sales").then((r) => r.data),
+    queryKey: ["sale", id],
+    queryFn: () => api<Sale>("/sales/" + id).then((r) => r.data),
   });
   return (
-    <div>
-      <Header
-        eyebrow="PENJUALAN"
-        title="Riwayat transaksi"
-        description="Telusuri pembayaran, pelanggan, dan invoice."
-        icon={ReceiptText}
-        action="Transaksi baru"
-      />
-      <DataState query={query}>
-        {(items: Sale[]) => (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Invoice</th>
-                  <th>Waktu</th>
-                  <th>Pelanggan</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <strong>{item.invoiceNumber}</strong>
-                    </td>
-                    <td>
-                      {new Date(item.createdAt).toLocaleString("id-ID", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </td>
-                    <td>{item.customer?.name || "Pelanggan umum"}</td>
-                    <td>
-                      <strong>{formatRupiah(item.total)}</strong>
-                    </td>
-                    <td>
-                      <span className="status-badge green">Selesai</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </DataState>
-    </div>
+    <Modal title={query.data?.invoiceNumber || "Detail invoice"} close={close}>
+      {query.isLoading ? (
+        <LoadingView />
+      ) : query.error ? (
+        <ErrorView
+          message={query.error.message}
+          retry={() => void query.refetch()}
+        />
+      ) : (
+        <>
+          <p>{query.data?.customer?.name || "Pelanggan umum"}</p>
+          {query.data?.items?.map((x) => (
+            <p key={x.id}>
+              {x.productName} x {x.quantity}: {formatRupiah(x.subtotal)}
+            </p>
+          ))}
+          <h3>{formatRupiah(query.data?.total || 0)}</h3>
+          <a
+            className="button primary"
+            href={getApiUrl() + "/sales/" + id + "/invoice.pdf"}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Download size={17} />
+            Invoice PDF
+          </a>
+        </>
+      )}
+    </Modal>
   );
-}
-function DataState<T>({
-  query,
-  children,
-}: {
-  query: {
-    isLoading: boolean;
-    error: Error | null;
-    data?: T;
-    refetch: () => unknown;
-  };
-  children: (data: T) => React.ReactNode;
-}) {
-  if (query.isLoading) return <LoadingView />;
-  if (query.error)
-    return (
-      <ErrorView
-        message={
-          query.error instanceof ApiError
-            ? query.error.message
-            : "Data gagal dimuat"
-        }
-        retry={() => void query.refetch()}
-      />
-    );
-  if (Array.isArray(query.data) && query.data.length === 0)
-    return (
-      <EmptyView
-        title="Belum ada data"
-        description="Data yang dibuat akan muncul di sini."
-      />
-    );
-  return <>{query.data && children(query.data)}</>;
 }

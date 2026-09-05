@@ -41,6 +41,7 @@ const paymentOptions = [
 export function PosView() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
   const [paying, setPaying] = useState(false);
   const [opening, setOpening] = useState(false);
   const [receipt, setReceipt] = useState<Sale | null>(null);
@@ -50,11 +51,11 @@ export function PosView() {
   const queryClient = useQueryClient();
   const cart = useCartStore();
   const products = useQuery({
-    queryKey: ["products", search, category],
+    queryKey: ["products", search, category, page],
     queryFn: () =>
       api<ProductResponse>(
-        `/products?limit=60&search=${encodeURIComponent(search)}${category ? `&categoryId=${category}` : ""}`,
-      ).then((r) => r.data),
+        `/products?limit=60&page=${page}&search=${encodeURIComponent(search)}${category ? `&categoryId=${category}` : ""}`,
+      ),
   });
   const categories = useQuery({
     queryKey: ["categories"],
@@ -78,7 +79,7 @@ export function PosView() {
       if (event.key === "Enter" && barcodeBuffer.current.length >= 4) {
         const code = barcodeBuffer.current;
         barcodeBuffer.current = "";
-        const product = products.data?.find(
+        const product = products.data?.data.find(
           (item) => item.barcode === code || item.sku === code,
         );
         if (product) {
@@ -137,7 +138,10 @@ export function PosView() {
           <input
             ref={inputRef}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             placeholder="Cari nama, SKU, atau barcode..."
           />
           <span>
@@ -147,7 +151,10 @@ export function PosView() {
         <div className="category-tabs">
           <button
             className={!category ? "active" : ""}
-            onClick={() => setCategory("")}
+            onClick={() => {
+              setCategory("");
+              setPage(1);
+            }}
           >
             Semua produk
           </button>
@@ -155,7 +162,10 @@ export function PosView() {
             <button
               key={item.id}
               className={category === item.id ? "active" : ""}
-              onClick={() => setCategory(item.id)}
+              onClick={() => {
+                setCategory(item.id);
+                setPage(1);
+              }}
             >
               {item.name}
             </button>
@@ -173,9 +183,9 @@ export function PosView() {
               }
               retry={() => void products.refetch()}
             />
-          ) : products.data?.length ? (
+          ) : products.data?.data.length ? (
             <div className="product-grid">
-              {products.data.map((product) => {
+              {products.data.data.map((product) => {
                 const stock = product.inventories[0]?.quantity ?? 0;
                 return (
                   <button
@@ -218,13 +228,27 @@ export function PosView() {
           )}
         </div>
         <div className="catalog-footer">
-          <span>Menampilkan {products.data?.length || 0} produk</span>
+          <span>
+            Menampilkan {products.data?.data.length || 0} dari{" "}
+            {Number(products.data?.meta.total || 0)} produk
+          </span>
           <div>
-            <button disabled>
+            <button
+              aria-label="Halaman sebelumnya"
+              disabled={page <= 1 || products.isFetching}
+              onClick={() => setPage((p) => p - 1)}
+            >
               <ChevronLeft size={16} />
             </button>
-            <b>1</b>
-            <button disabled>
+            <b>{page}</b>
+            <button
+              aria-label="Halaman berikutnya"
+              disabled={
+                page >= Number(products.data?.meta.pages || 1) ||
+                products.isFetching
+              }
+              onClick={() => setPage((p) => p + 1)}
+            >
               <ChevronRight size={16} />
             </button>
           </div>

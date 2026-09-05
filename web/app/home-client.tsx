@@ -16,6 +16,10 @@ import {
 import { useAuthStore } from "@/stores/auth.store";
 import type { User } from "@/types/api";
 import { indexedDbPersister } from "@/lib/query-persister";
+import {
+  ReportsView,
+  SettingsView,
+} from "@/features/management/reports-settings";
 
 export function HomeClient() {
   const [view, setView] = useState<View>("dashboard");
@@ -29,8 +33,13 @@ export function HomeClient() {
   });
   const user = auth.user || session.data || null;
   const canViewDashboard =
-    user?.permissions.includes("*") || user?.permissions.includes("reports.view");
-  const activeView = canViewDashboard ? view : view === "dashboard" ? "pos" : view;
+    user?.permissions.includes("*") ||
+    user?.permissions.includes("reports.view");
+  const activeView = canViewDashboard
+    ? view
+    : view === "dashboard"
+      ? "pos"
+      : view;
   const logout = useMutation({
     mutationFn: () => api<null>("/auth/logout", { method: "POST" }),
     onSettled: async () => {
@@ -62,7 +71,9 @@ export function HomeClient() {
     products: <ProductsView />,
     inventory: <InventoryView />,
     customers: <CustomersView />,
-    sales: <SalesView />,
+    sales: <SalesView goToPos={() => setView("pos")} />,
+    reports: <ReportsView />,
+    settings: <SettingsView user={user} />,
   };
 
   return (

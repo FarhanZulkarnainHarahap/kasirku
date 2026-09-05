@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api-client";
 import type { User } from "@/types/api";
+import { Modal } from "@/features/management/controls";
 
 export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
   const [email, setEmail] = useState("owner@my-cashier.test");
   const [password, setPassword] = useState("Owner123!");
   const [show, setShow] = useState(false);
+  const [recovery, setRecovery] = useState(false);
   const mutation = useMutation({
     mutationFn: () =>
       api<User>("/auth/login", {
@@ -37,9 +39,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
           <span className="brand-mark">
             <Store size={24} />
           </span>
-          <span>
-            MY-CASHIER
-          </span>
+          <span>MY-CASHIER</span>
         </div>
         <div className="story-copy">
           <span className="eyebrow">
@@ -87,7 +87,11 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
             </div>
             <div className="label-row">
               <label>Kata sandi</label>
-              <button type="button" className="link-button">
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => setRecovery(true)}
+              >
                 Lupa kata sandi?
               </button>
             </div>
@@ -137,6 +141,20 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
           </p>
         </div>
       </section>
+      {recovery && (
+        <Modal title="Pemulihan akun" close={() => setRecovery(false)}>
+          <p>
+            Hubungi pemilik atau administrator bisnis untuk memulihkan akses
+            akun {email}. Reset kata sandi melalui email belum tersedia.
+          </p>
+          <button
+            className="button secondary"
+            onClick={() => setRecovery(false)}
+          >
+            Kembali ke login
+          </button>
+        </Modal>
+      )}
     </main>
   );
 }

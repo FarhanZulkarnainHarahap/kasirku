@@ -112,7 +112,12 @@ export const updateProduct = asyncHandler(async (req, res) => {
   if (!current) throw new AppError(404, "Produk tidak ditemukan", "NOT_FOUND");
   const product = await prisma.product.update({
     where: { id: current.id },
-    data: { ...input, barcode: input.barcode || null },
+    data: {
+      ...input,
+      ...(input.barcode !== undefined
+        ? { barcode: input.barcode || null }
+        : {}),
+    },
   });
   res.json({
     success: true,

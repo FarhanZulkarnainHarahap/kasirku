@@ -1756,3 +1756,103 @@ button:disabled {
     padding: 0;
   }
 }
+.management-dialog {
+  width: min(620px, calc(100% - 32px));
+  max-height: 90dvh;
+  overflow: auto;
+  margin: auto;
+  border: 1px solid #d8dce3;
+  border-radius: 8px;
+  padding: 24px;
+  color: #20242b;
+  background: white;
+}
+.management-dialog::backdrop {
+  background: #0008;
+}
+.management-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.management-dialog h2 {
+  font-size: 22px;
+}
+.management-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.management-form label,
+.report-dates label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+.management-form input:not([type="checkbox"]),
+select,
+.report-dates input {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid #d5d9df;
+  border-radius: 5px;
+  padding: 10px;
+  background: white;
+  color: #20242b;
+}
+.management-form .checkbox-field {
+  flex-direction: row;
+  align-items: center;
+}
+.settings-form {
+  max-width: 760px;
+  padding-top: 24px;
+}
+.report-dates,
+.report-totals {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+  align-items: end;
+}
+.report-totals {
+  border-block: 1px solid #d5d9df;
+  padding: 24px 0;
+}
+.report-totals strong {
+  display: block;
+  font-size: 24px;
+}
+.global-search {
+  position: relative;
+}
+.menu-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: white;
+  border: 1px solid #d5d9df;
+}
+.menu-results button {
+  display: block;
+  padding: 12px;
+  width: 100%;
+  text-align: left;
+}
+@media (max-width: 600px) {
+  .management-form fieldset {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .table-toolbar {
+    flex-wrap: wrap;
+  }
+}
