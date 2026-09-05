@@ -6,10 +6,12 @@ import { authenticate, toMyCashierText } from "../service/auth.service.js";
 import { createCsrfToken } from "../middleware/csrf.middleware.js";
 import { asyncHandler } from "../utils/async-handler.js";
 
+const isProduction =
+  env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
 const cookieOptions = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  sameSite: env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
+  secure: isProduction,
+  sameSite: isProduction ? ("none" as const) : ("lax" as const),
   maxAge: 8 * 60 * 60 * 1000,
   path: "/",
 };
