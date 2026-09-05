@@ -21,42 +21,10 @@ const productInput = z.object({
   active: z.boolean().default(true),
 });
 
-const productImageKeywords: Record<string, string> = {
-  "Kopi Susu Gula Aren": "iced-coffee,brown-sugar",
-  Americano: "americano-coffee",
-  "Matcha Latte": "matcha-latte",
-  "Air Mineral 600ml": "mineral-water-bottle",
-  "Croissant Butter": "butter-croissant",
-  "Roti Cokelat": "chocolate-bread",
-  "Nasi Goreng Spesial": "fried-rice",
-  "Mie Goreng": "fried-noodles",
-  "Keripik Kentang": "potato-chips",
-  "Biskuit Cokelat": "chocolate-biscuits",
-  "Kacang Panggang": "roasted-peanuts",
-  "Cokelat Bar": "chocolate-bar",
-  "Sabun Mandi": "bath-soap",
-  "Sampo 170ml": "shampoo-bottle",
-  "Tisu Wajah": "facial-tissue",
-  "Deterjen 800g": "laundry-detergent",
-  "Kemeja Oxford": "oxford-shirt",
-  "Kaos Basic": "basic-t-shirt",
-  "Kabel USB-C": "usb-c-cable",
-  "Charger 20W": "phone-charger",
-};
-
 const productImageUrl = (name: string) => {
-  const keywords =
-    productImageKeywords[name] ||
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-  const lock = Array.from(name).reduce(
-    (sum, char) => sum + char.charCodeAt(0),
-    0,
-  );
+  const text = encodeURIComponent(name);
 
-  return `https://loremflickr.com/640/480/${encodeURIComponent(keywords)}?lock=${lock}`;
+  return `https://dummyimage.com/640x480/f8fafc/111827.png&text=${text}`;
 };
 
 export const listProducts = asyncHandler(async (req, res) => {

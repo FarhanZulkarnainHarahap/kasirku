@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
-      { protocol: "https", hostname: "loremflickr.com", pathname: "/**" },
+      { protocol: "https", hostname: "dummyimage.com", pathname: "/**" },
     ],
   },
   poweredByHeader: false,
