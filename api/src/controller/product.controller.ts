@@ -51,8 +51,12 @@ const productImageUrl = (name: string) => {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
+  const lock = Array.from(name).reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0,
+  );
 
-  return `https://res.cloudinary.com/demo/image/fetch/f_auto,q_auto,w_640,h_480,c_fill/https://loremflickr.com/640/480/${encodeURIComponent(keywords)}`;
+  return `https://loremflickr.com/640/480/${encodeURIComponent(keywords)}?lock=${lock}`;
 };
 
 export const listProducts = asyncHandler(async (req, res) => {

@@ -56,9 +56,9 @@ const productImageKeywords: Record<string, string> = {
 };
 
 const productImageUrl = (name: string) =>
-  `https://res.cloudinary.com/demo/image/fetch/f_auto,q_auto,w_640,h_480,c_fill/https://loremflickr.com/640/480/${encodeURIComponent(
+  `https://loremflickr.com/640/480/${encodeURIComponent(
     productImageKeywords[name] || name.toLowerCase().replaceAll(" ", "-"),
-  )}`;
+  )}?lock=${Array.from(name).reduce((sum, char) => sum + char.charCodeAt(0), 0)}`;
 
 async function main() {
   const tenant = await prisma.tenant.upsert({
