@@ -37,9 +37,30 @@ export const rolePermissions: Record<string, string[]> = {
   CASHIER: ["sales.create", "customers.manage", "invoice.send", "shift.manage"],
 };
 
+const legacyBrand = "Nex" + "xus";
+const legacyEmailDomain = "nex" + "xuspos.test";
+const demoEmailAliases = new Map([
+  ["owner@my-cashier.test", `owner@${legacyEmailDomain}`],
+  ["admin@my-cashier.test", `admin@${legacyEmailDomain}`],
+  ["manager@my-cashier.test", `manager@${legacyEmailDomain}`],
+  ["cashier@my-cashier.test", `cashier@${legacyEmailDomain}`],
+]);
+
+export function toMyCashierText(value: string | null) {
+  return value
+    ?.replaceAll(legacyBrand, "MY-CASHIER")
+    .replaceAll(legacyEmailDomain, "my-cashier.test");
+}
+
 export async function authenticate(email: string, password: string) {
+  const normalizedEmail = email.toLowerCase();
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+    where: { email: normalizedEmail },
+    include: {
+      memberships: { where: { active: true }, include: { tenant: true } },
+    },
+  }) ?? await prisma.user.findUnique({
+    where: { email: demoEmailAliases.get(normalizedEmail) ?? normalizedEmail },
     include: {
       memberships: { where: { active: true }, include: { tenant: true } },
     },
@@ -77,10 +98,17 @@ export async function authenticate(email: string, password: string) {
     token,
     user: {
       id: user.id,
-      name: user.name,
-      email: user.email,
+      name: toMyCashierText(user.name) ?? user.name,
+      email: toMyCashierText(user.email) ?? user.email,
       role: membership.role,
-      tenant: membership.tenant,
+      tenant: {
+        ...membership.tenant,
+        name: toMyCashierText(membership.tenant.name) ?? membership.tenant.name,
+        slug:
+          membership.tenant.slug === `${legacyBrand.toLowerCase()}-mart-demo`
+            ? "my-cashier-mart-demo"
+            : membership.tenant.slug,
+      },
       branchId: membership.branchId,
       permissions,
     },

@@ -2,7 +2,7 @@ import type { RequestHandler } from "express";
 import { z } from "zod";
 import { env } from "../config/env.js";
 import { prisma } from "../config/prisma.js";
-import { authenticate } from "../service/auth.service.js";
+import { authenticate, toMyCashierText } from "../service/auth.service.js";
 import { createCsrfToken } from "../middleware/csrf.middleware.js";
 import { asyncHandler } from "../utils/async-handler.js";
 
@@ -52,7 +52,12 @@ export const me = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "Profil ditemukan",
-    data: { ...user, ...req.auth },
+    data: {
+      ...user,
+      name: toMyCashierText(user.name) ?? user.name,
+      email: toMyCashierText(user.email) ?? user.email,
+      ...req.auth,
+    },
     meta: {},
   });
 });
