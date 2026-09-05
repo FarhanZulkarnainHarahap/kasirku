@@ -71,18 +71,24 @@ export const listProducts = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "Produk ditemukan",
-    data: items.map((item) => ({
-      ...item,
-      images: item.images.length
-        ? item.images
-        : [
-            {
-              secureUrl: productImageUrl(item.name),
-              altText: item.name,
-              isPrimary: true,
-            },
-          ],
-    })),
+    data: items.map((item) => {
+      const hasRealImage =
+        item.images.length &&
+        !item.images[0]?.secureUrl.includes("loremflickr.com");
+
+      return {
+        ...item,
+        images: hasRealImage
+          ? item.images
+          : [
+              {
+                secureUrl: productImageUrl(item.name),
+                altText: item.name,
+                isPrimary: true,
+              },
+            ],
+      };
+    }),
     meta: {
       page: query.page,
       limit: query.limit,
