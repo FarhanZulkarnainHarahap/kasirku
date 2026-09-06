@@ -24,6 +24,7 @@ import type { User } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import type { Branch } from "@/features/management/reports-settings";
+import { BrandIcon } from "@/components/shared/brand-icon";
 
 export type View =
   | "dashboard"
@@ -84,7 +85,7 @@ export function AppShell({
         <div className="sidebar-head">
           <div className="brand">
             <span className="brand-mark">
-              <Store size={21} />
+              <BrandIcon />
             </span>
             <span className="brand-name">
               kasirku<span className="brand-dot">.</span>

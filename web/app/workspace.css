@@ -465,7 +465,7 @@ button svg {
 .product-image {
   height: auto;
   aspect-ratio: 1.55;
-  background: #f1f4ed;
+  background: #fff;
   overflow: hidden;
 }
 .product-image img {

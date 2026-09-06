@@ -9,11 +9,11 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Store,
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api-client";
 import type { User } from "@/types/api";
 import { Modal } from "@/features/management/controls";
+import { BrandIcon } from "@/components/shared/brand-icon";
 
 export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
   const [email, setEmail] = useState("owner@my-cashier.test");
@@ -37,7 +37,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
       <section className="login-story">
         <div className="brand light">
           <span className="brand-mark">
-            <Store size={24} />
+            <BrandIcon />
           </span>
           <span>kasirku.</span>
         </div>
@@ -58,7 +58,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
         <div className="login-card">
           <div className="mobile-brand">
             <span className="brand-mark">
-              <Store size={20} />
+              <BrandIcon />
             </span>
             kasirku.
           </div>

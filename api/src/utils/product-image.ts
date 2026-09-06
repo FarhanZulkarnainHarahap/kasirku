@@ -1,3 +1,26 @@
+const productPhotos: Record<string, string> = {
+  "Air Mineral 600ml": "air-mineral-600ml",
+  Americano: "americano",
+  "Kopi Susu Gula Aren": "kopi-susu-gula-aren",
+  "Matcha Latte": "matcha-latte",
+  "Croissant Butter": "croissant-butter",
+  "Roti Cokelat": "roti-cokelat",
+  "Nasi Goreng Spesial": "nasi-goreng-spesial",
+  "Mie Goreng": "mie-goreng",
+  "Keripik Kentang": "keripik-kentang",
+  "Biskuit Cokelat": "biskuit-cokelat",
+  "Kacang Panggang": "kacang-panggang",
+  "Cokelat Bar": "cokelat-bar",
+  "Sabun Mandi": "sabun-mandi",
+  "Sampo 170ml": "sampo-170ml",
+  "Tisu Wajah": "tisu-wajah",
+  "Deterjen 800g": "deterjen-800g",
+  "Kemeja Oxford": "kemeja-oxford",
+  "Kaos Basic": "kaos-basic",
+  "Kabel USB-C": "kabel-usb-c",
+  "Charger 20W": "charger-20w",
+};
+
 type ProductImageTheme = {
   icon: string;
   bg: string;
@@ -161,6 +184,13 @@ const iconSvg = ({ icon, accent, soft }: ProductImageTheme) => {
 };
 
 export const productImageUrl = (name: string) => {
+  const photo = productPhotos[name];
+  if (photo) {
+    return new URL(
+      `/products/${photo}.webp`,
+      process.env.WEB_APP_URL || "https://my-kasirku.vercel.app",
+    ).href;
+  }
   const theme = productImageThemes[name] || {
     icon: "bag",
     bg: "#eef4f2",

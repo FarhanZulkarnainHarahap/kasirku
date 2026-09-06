@@ -69,6 +69,7 @@ export const listProducts = asyncHandler(async (req, res) => {
     data: items.map((item) => {
       const hasRealImage =
         item.images.length &&
+        !item.images[0]?.secureUrl.startsWith("data:image/svg+xml") &&
         !["loremflickr.com", "dummyimage.com"].some((host) =>
           item.images[0]?.secureUrl.includes(host),
         );

@@ -3,6 +3,7 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 import "./workspace.css";
 export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
   title: "Kasirku - Ruang Kerja Toko",
   description:
     "Point of Sale profesional untuk bisnis modern dan multi-cabang.",
