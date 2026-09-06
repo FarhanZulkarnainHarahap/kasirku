@@ -39,20 +39,14 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
           <span className="brand-mark">
             <Store size={24} />
           </span>
-          <span>MY-CASHIER</span>
+          <span>kasirku.</span>
         </div>
         <div className="story-copy">
           <span className="eyebrow">
-            <ShieldCheck size={15} /> Operasional toko dalam satu kendali
+            <ShieldCheck size={15} /> Ruang kerja toko
           </span>
-          <h1>
-            Transaksi lebih cepat.
-            <br />
-            <em>Bisnis lebih terkendali.</em>
-          </h1>
-          <p>
-            Kelola bisnis Anda dengan MY-CASHIER dari satu sistem yang aman.
-          </p>
+          <h1>Kasirku.</h1>
+          <p>Selamat datang kembali.</p>
         </div>
         <div className="trust-row">
           <span>Multi-cabang</span>
@@ -66,7 +60,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
             <span className="brand-mark">
               <Store size={20} />
             </span>
-            MY-CASHIER
+            kasirku.
           </div>
           <span className="overline">SELAMAT DATANG</span>
           <h2>Masuk ke ruang kerja</h2>
@@ -74,11 +68,12 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
             Gunakan akun yang telah didaftarkan oleh pemilik bisnis.
           </p>
           <form onSubmit={submit}>
-            <label>Email</label>
+            <label htmlFor="login-email">Email</label>
             <div className="input-shell">
               <Mail size={18} />
               <input
                 type="email"
+                id="login-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -86,7 +81,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
               />
             </div>
             <div className="label-row">
-              <label>Kata sandi</label>
+              <label htmlFor="login-password">Kata sandi</label>
               <button
                 type="button"
                 className="link-button"
@@ -99,6 +94,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
               <LockKeyhole size={18} />
               <input
                 type={show ? "text" : "password"}
+                id="login-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -131,7 +127,7 @@ export function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
                 </>
               ) : (
                 <>
-                  Masuk ke MY-CASHIER <ArrowRight size={18} />
+                  Masuk ke Kasirku <ArrowRight size={18} />
                 </>
               )}
             </button>

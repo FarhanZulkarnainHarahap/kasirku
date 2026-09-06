@@ -108,9 +108,17 @@ export function DashboardView({ goToPos }: { goToPos: () => void }) {
     <div className="dashboard-stack">
       <section className="welcome-row">
         <div>
-          <span className="eyebrow dark">RABU, 2 SEPTEMBER 2026</span>
+          <span className="eyebrow dark">
+            {new Date().toLocaleDateString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              timeZone: "Asia/Jakarta",
+            })}
+          </span>
           <h1>
-            Selamat bekerja, <em>tim MY-CASHIER.</em>
+            Hari ini di <em>Kasirku.</em>
           </h1>
           <p>Berikut ringkasan performa bisnis Anda hari ini.</p>
         </div>
@@ -119,7 +127,7 @@ export function DashboardView({ goToPos }: { goToPos: () => void }) {
             className="button secondary"
             onClick={() => void query.refetch()}
           >
-            <RefreshCcw size={17} />
+            <RefreshCcw size={17} className={query.isFetching ? "spin" : ""} />
             Perbarui
           </button>
           <button className="button primary" onClick={goToPos}>

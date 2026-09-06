@@ -17,6 +17,10 @@ import {
   UserRound,
   WalletCards,
   X,
+  ChevronUp,
+  ChevronDown,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api, ApiError, getApiUrl } from "@/lib/api-client";
@@ -42,6 +46,8 @@ export function PosView() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
+  const [cartExpanded, setCartExpanded] = useState(false);
+  const [catalogMode, setCatalogMode] = useState<"grid" | "list">("grid");
   const [paying, setPaying] = useState(false);
   const [opening, setOpening] = useState(false);
   const [receipt, setReceipt] = useState<Sale | null>(null);
@@ -123,7 +129,7 @@ export function PosView() {
         <div className="pos-toolbar">
           <div>
             <h1>Kasir</h1>
-            <p>Pilih produk atau pindai barcode</p>
+            <p>Katalog toko</p>
           </div>
           <div className={`shift-status ${shift.data ? "active" : ""}`}>
             <i />
@@ -144,9 +150,27 @@ export function PosView() {
             }}
             placeholder="Cari nama, SKU, atau barcode..."
           />
-          <span>
-            <Barcode size={18} /> F2 untuk scan
-          </span>
+          <Barcode size={18} />
+          <div
+            className="catalog-modes"
+            role="group"
+            aria-label="Tampilan katalog"
+          >
+            <button
+              title="Tampilan grid"
+              aria-pressed={catalogMode === "grid"}
+              onClick={() => setCatalogMode("grid")}
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button
+              title="Tampilan daftar"
+              aria-pressed={catalogMode === "list"}
+              onClick={() => setCatalogMode("list")}
+            >
+              <List size={18} />
+            </button>
+          </div>
         </div>
         <div className="category-tabs">
           <button
@@ -184,12 +208,14 @@ export function PosView() {
               retry={() => void products.refetch()}
             />
           ) : products.data?.data.length ? (
-            <div className="product-grid">
+            <div
+              className={`product-grid ${catalogMode === "list" ? "product-list" : ""}`}
+            >
               {products.data.data.map((product) => {
                 const stock = product.inventories[0]?.quantity ?? 0;
                 return (
                   <button
-                    className="product-card"
+                    className={`product-card ${cart.items.some((item) => item.productId === product.id) ? "in-cart" : ""}`}
                     key={product.id}
                     disabled={!product.active || stock <= 0}
                     onClick={() => cart.add(product)}
@@ -213,6 +239,9 @@ export function PosView() {
                       </small>
                       <strong>{product.name}</strong>
                       <span>{formatRupiah(product.sellingPrice)}</span>
+                      <span className="product-add">
+                        <CirclePlus size={20} />
+                      </span>
                     </div>
                   </button>
                 );
@@ -252,7 +281,17 @@ export function PosView() {
           </div>
         </div>
       </section>
-      <aside className="cart-panel">
+      <aside className={`cart-panel ${cartExpanded ? "expanded" : ""}`}>
+        <button
+          className="cart-disclosure"
+          aria-expanded={cartExpanded}
+          aria-controls="cart-details"
+          onClick={() => setCartExpanded(!cartExpanded)}
+        >
+          <ShoppingCart size={18} />
+          <strong>Keranjang ({summary.count})</strong>
+          {cartExpanded ? <ChevronDown size={19} /> : <ChevronUp size={19} />}
+        </button>
         <div className="cart-head">
           <span>
             <ShoppingCart size={20} />
@@ -280,7 +319,7 @@ export function PosView() {
           </select>
           <ChevronRight size={17} />
         </div>
-        <div className="cart-items">
+        <div className="cart-items" id="cart-details">
           {cart.items.length ? (
             cart.items.map((item) => (
               <div className="cart-item" key={item.productId}>
@@ -290,7 +329,10 @@ export function PosView() {
                 <div className="cart-item-main">
                   <div>
                     <strong>{item.name}</strong>
-                    <button onClick={() => cart.remove(item.productId)}>
+                    <button
+                      title={`Hapus ${item.name}`}
+                      onClick={() => cart.remove(item.productId)}
+                    >
                       <Trash2 size={15} />
                     </button>
                   </div>
@@ -299,6 +341,7 @@ export function PosView() {
                   </small>
                   <div className="quantity">
                     <button
+                      title={`Kurangi ${item.name}`}
                       onClick={() =>
                         item.quantity === 1
                           ? cart.remove(item.productId)
@@ -309,6 +352,7 @@ export function PosView() {
                     </button>
                     <b>{item.quantity}</b>
                     <button
+                      title={`Tambah ${item.name}`}
                       onClick={() =>
                         cart.setQuantity(item.productId, item.quantity + 1)
                       }
@@ -361,9 +405,6 @@ export function PosView() {
             <span>Bayar sekarang</span>
             <strong>{formatRupiah(summary.total)}</strong>
           </button>
-          <p className="shortcut-hint">
-            Tekan <kbd>F9</kbd> untuk pembayaran cepat
-          </p>
         </div>
       </aside>
       {opening && (

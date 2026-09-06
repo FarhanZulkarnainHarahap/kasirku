@@ -16,6 +16,9 @@ import {
   Store,
   Users,
   X,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Wifi,
 } from "lucide-react";
 import type { User } from "@/types/api";
 import { useQuery } from "@tanstack/react-query";
@@ -56,6 +59,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [mobile, setMobile] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [online, setOnline] = useState(true);
   const [search, setSearch] = useState("");
   const branches = useQuery({
@@ -75,27 +79,32 @@ export function AppShell({
     };
   }, []);
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${collapsed ? "rail-layout" : ""}`}>
       <aside className={`sidebar ${mobile ? "open" : ""}`}>
         <div className="sidebar-head">
           <div className="brand">
             <span className="brand-mark">
               <Store size={21} />
             </span>
-            <span>MY-CASHIER</span>
+            <span className="brand-name">
+              kasirku<span className="brand-dot">.</span>
+            </span>
           </div>
           <button
             className="icon-button mobile-only"
+            aria-label="Tutup menu"
             onClick={() => setMobile(false)}
           >
             <X />
           </button>
         </div>
         <div className="workspace">
-          <span className="workspace-logo">NT</span>
+          <span className="workspace-logo">
+            <Store size={18} />
+          </span>
           <span>
             <small>Ruang kerja</small>
-            <strong>MY-CASHIER Mart</strong>
+            <strong>{branch?.name || "Kasirku Mart"}</strong>
           </span>
         </div>
         <nav>
@@ -110,6 +119,8 @@ export function AppShell({
             .map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
+                title={label}
+                aria-current={view === id ? "page" : undefined}
                 className={view === id ? "active" : ""}
                 onClick={() => {
                   setView(id);
@@ -117,11 +128,22 @@ export function AppShell({
                 }}
               >
                 <Icon size={19} />
-                {label}
-                {id === "pos" && <span className="key-hint">F2</span>}
+                <span className="nav-text">{label}</span>
               </button>
             ))}
         </nav>
+        <button
+          className="rail-toggle"
+          title={collapsed ? "Perluas navigasi" : "Ringkas navigasi"}
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          {collapsed ? (
+            <PanelLeftOpen size={19} />
+          ) : (
+            <PanelLeftClose size={19} />
+          )}
+          <span className="nav-text">Ringkas navigasi</span>
+        </button>
         <div className="sidebar-user">
           <CircleUserRound size={34} />
           <span>
@@ -144,16 +166,23 @@ export function AppShell({
         <header className="topbar">
           <button
             className="icon-button mobile-only"
+            aria-label="Buka menu"
+            aria-expanded={mobile}
             onClick={() => setMobile(true)}
           >
             <Menu />
           </button>
           <div>
-            <span className="breadcrumb">MY-CASHIER / {current.label}</span>
+            <span className="breadcrumb">
+              Ruang kerja / <strong>{current.label}</strong>
+            </span>
             <h2>{current.label}</h2>
           </div>
           <div className="top-actions">
-            {!online && <span className="offline-pill">Offline</span>}
+            <span className={`connection-status ${online ? "" : "is-offline"}`}>
+              <Wifi size={14} />
+              {online ? "Online" : "Offline"}
+            </span>
             <div className="global-search">
               <Search size={17} />
               <input
@@ -195,7 +224,9 @@ export function AppShell({
               <i />
             </button>
             <div className="branch-pill">
-              <span>NT</span>
+              <span>
+                <Store size={16} />
+              </span>
               <div>
                 <small>Cabang aktif</small>
                 <strong>{branch?.name || "Semua cabang"}</strong>
