@@ -99,7 +99,9 @@ export function DashboardView({ goToPos }: { goToPos: () => void }) {
     {
       label: "Stok habis",
       value: String(metrics.outOfStock),
-      detail: "Perlu segera ditindak",
+      detail: metrics.outOfStock
+        ? "Perlu segera ditindak"
+        : "Semua produk tersedia",
       icon: TriangleAlert,
       positive: metrics.outOfStock === 0,
     },
@@ -196,12 +198,27 @@ export function DashboardView({ goToPos }: { goToPos: () => void }) {
                   fontSize={11}
                 />
                 <YAxis
-                  tickFormatter={(v: number) => `${v / 1_000_000}jt`}
+                  tickFormatter={(v: number) =>
+                    new Intl.NumberFormat("id-ID", {
+                      notation: "compact",
+                      maximumFractionDigits: 1,
+                    }).format(v)
+                  }
                   axisLine={false}
                   tickLine={false}
                   fontSize={11}
                 />
-                <Tooltip formatter={(v) => formatRupiah(Number(v))} />
+                <Tooltip
+                  labelFormatter={(value) =>
+                    new Date(String(value)).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      timeZone: "Asia/Jakarta",
+                    })
+                  }
+                  formatter={(v) => [formatRupiah(Number(v)), "Penjualan"]}
+                />
                 <Area
                   type="monotone"
                   dataKey="total"

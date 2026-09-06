@@ -16,7 +16,7 @@ body {
   font-size: 14px;
 }
 body * {
-  letter-spacing: 0;
+  letter-spacing: 0 !important;
 }
 button,
 a,
@@ -469,6 +469,8 @@ button svg {
   overflow: hidden;
 }
 .product-image img {
+  position: absolute;
+  inset: 0;
   object-fit: contain;
 }
 .product-image i {
