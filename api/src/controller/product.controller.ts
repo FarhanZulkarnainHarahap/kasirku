@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../config/prisma.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { AppError } from "../utils/app-error.js";
+import { productImageUrl } from "../utils/product-image.js";
 
 const productInput = z.object({
   name: z.string().trim().min(2).max(150),
@@ -20,12 +21,6 @@ const productInput = z.object({
   minimumStock: z.coerce.number().int().min(0).default(5),
   active: z.boolean().default(true),
 });
-
-const productImageUrl = (name: string) => {
-  const text = encodeURIComponent(name);
-
-  return `https://dummyimage.com/640x480/f8fafc/111827.png&text=${text}`;
-};
 
 export const listProducts = asyncHandler(async (req, res) => {
   const query = z
@@ -74,7 +69,9 @@ export const listProducts = asyncHandler(async (req, res) => {
     data: items.map((item) => {
       const hasRealImage =
         item.images.length &&
-        !item.images[0]?.secureUrl.includes("loremflickr.com");
+        !["loremflickr.com", "dummyimage.com"].some((host) =>
+          item.images[0]?.secureUrl.includes(host),
+        );
 
       return {
         ...item,

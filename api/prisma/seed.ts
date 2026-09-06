@@ -3,6 +3,7 @@ import argon2 from "argon2";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient, Role } from "./generated/prisma/client.js";
 import pkg from "pg";
+import { productImageUrl } from "../src/utils/product-image.js";
 
 if (process.env.NODE_ENV === "production")
   throw new Error("Seed demo tidak boleh dijalankan di production");
@@ -31,9 +32,6 @@ const products = [
   ["Kabel USB-C", "ELK-001", "8991006000016", 18000, 35000, "Elektronik"],
   ["Charger 20W", "ELK-002", "8991006000023", 55000, 99000, "Elektronik"],
 ] as const;
-
-const productImageUrl = (name: string) =>
-  `https://dummyimage.com/640x480/f8fafc/111827.png&text=${encodeURIComponent(name)}`;
 
 async function main() {
   const tenant = await prisma.tenant.upsert({

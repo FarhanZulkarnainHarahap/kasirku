@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -196,11 +196,9 @@ export function PosView() {
                   >
                     <div className="product-image">
                       {product.images[0] ? (
-                        <Image
+                        <img
                           src={product.images[0].secureUrl}
                           alt={product.images[0].altText || product.name}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 180px"
                         />
                       ) : (
                         <span>{product.name.slice(0, 2).toUpperCase()}</span>
